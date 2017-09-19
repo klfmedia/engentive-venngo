@@ -76,3 +76,28 @@ $_['action_event'] = array(
 	//'controller/*/before'                 => 'event/debug/before',
 	//'controller/*/after'                  => 'event/debug/after'
 );
+
+
+//CUSTOM - Loyalty Source API config settings
+$_['ls_api_base_url']       	  = "http://api-dev.loyaltysource.com:8080/";
+$_['ls_api_auth_key']       	  = "SVRDQU46SVRDMjkxNw==";
+
+$_['ls_api_get_category']         = "api/categories/";
+$_['ls_api_get_categories']       = "api/categories";
+$_['ls_api_get_brand']         	  = "api/brands/";
+$_['ls_api_get_brands']       	  = "api/brands";
+$_['ls_api_get_products']         = "api/product/fullCatalog";
+$_['ls_api_get_product']          = "api/product/";
+$_['ls_api_get_order']            = "api/order";
+$_['ls_api_get_orders']           = "api/orders";
+
+$_['ls_api_add_order']            = "api/orders";
+
+//OpenCart language codes
+$_['ls_lang_name_en']             = "en";
+$_['ls_lang_code_en']             = 1;
+$_['ls_lang_name_fr']             = "fr";
+$_['ls_lang_code_fr']             = 1;
+
+//Misc settings for Engentive
+$_['ls_venngo_store_id']          = 0;
