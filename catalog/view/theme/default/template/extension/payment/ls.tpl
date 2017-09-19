@@ -1,24 +1,8 @@
-<div class="buttons">
-  <div class="pull-right">
-    <input type="button" value="<?php echo $button_confirm; ?>" id="button-confirm" class="btn btn-primary" data-loading-text="<?php echo $text_loading; ?>" />
-  </div>
-</div>
-<script type="text/javascript"><!--
-$('#button-confirm').on('click', function() {
-	$.ajax({
-		type: 'get',
-		url: 'index.php?route=extension/payment/ls/confirm',
-		cache: false,
-		beforeSend: function() {
-			$('#button-confirm').button('loading');
-		},
-		complete: function() {
-			$('#button-confirm').button('reset');
-		},
-		success: function(response) {
-			alert(response);
-			//location = '<?php echo $continue; ?>';
-		}
-	});
-});
-//--></script>
+<form action="index.php?route=extension/payment/ls/confirm" method="post">
+	<div class="buttons">
+	  <div class="pull-right">
+	    <input type="submit" value="<?php echo $button_confirm; ?>" class="btn btn-primary" data-loading-text="<?php echo $text_loading; ?>" />
+	  </div>
+	</div>
+</form>
+<script type="text/javascript"></script>
