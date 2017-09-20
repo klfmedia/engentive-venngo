@@ -1,3 +1,5 @@
+<?php $msrp = '$120'?>
+
 <div class=""></div>
 
 <h3><?php echo $heading_title; ?></h3>
@@ -23,9 +25,9 @@
         <?php if ($product['price']) { ?>
         <p class="price">
           <?php if (!$product['special']) { ?>
-          <?php echo $product['price']; ?>
+          <?php echo ($product['price']) ?>
           <?php } else { ?>
-          <span class="price-new"><?php echo $product['special']; ?></span> <span class="price-old"><?php echo $product['price']; ?></span>
+          <span class="price-new"><?php echo $product['special']; ?></span><br><span class="price-old">MSRP: <?php echo $msrp; ?></span>
           <?php } ?>
           <?php if ($product['tax']) { ?>
           <span class="price-tax"><?php echo $text_tax; ?> <?php echo $product['tax']; ?></span>
