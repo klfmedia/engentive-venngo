@@ -1,6 +1,7 @@
 <?php
 class ControllerApiCatalog extends Controller {
 	public function update() {
+		
 		//$this->load->language('api/coupon');
 
 		$json = array();
@@ -13,9 +14,15 @@ class ControllerApiCatalog extends Controller {
 		else {
 		}
 		*/
+
+		//Clear out all catalog tables if requested
+		if (isset($this->request->get['reset']) && $this->request->get['reset']) {
+			$this->log->write("Requested received to reset catalog tables");
+			$this->resetCatalog();
+			$this->log->write("Reset completed");
+		}
 		
 		//For categories
-		/*
 		$this->log->write("START Updating categories");
 		$categories = $this->getCategories();
 		if (!$categories) {
@@ -36,8 +43,6 @@ class ControllerApiCatalog extends Controller {
 		$this->log->write("Total of ".count($brands)." rows fetched");
 		$this->updateBrands($brands);
 		$this->log->write("END Updating brands");
-		*/
-
 		//For products
 		$this->log->write("START Updating products");
 		$products = $this->getProducts();
@@ -62,7 +67,6 @@ class ControllerApiCatalog extends Controller {
 		$this->response->setOutput(json_encode($json));
 		*/
 	}
-
 
 	private function getCategories() {
 		$url = $this->config->get('ls_api_base_url') . $this->config->get('ls_api_get_categories');
@@ -106,6 +110,11 @@ class ControllerApiCatalog extends Controller {
 		}
 	}
 
+	private function resetCatalog() {
+		$this->load->model('api/catalog');
+		$this->model_api_catalog->resetCatalog();
+	}
+
 	private function updateCategories($categories) {
 		$this->load->model('api/catalog');
 
@@ -131,7 +140,7 @@ class ControllerApiCatalog extends Controller {
 
 		foreach($products as $product) {
 			//Add in the store id for each product
-			$category['product_store'][] = $this->config->get('ls_venngo_store_id');
+			$product['product_store'][] = $this->config->get('ls_venngo_store_id');
 			$this->model_api_catalog->setProduct($product);
 		}
 	}

@@ -1,5 +1,23 @@
 <?php
 class ModelApiCatalog extends Model {
+	public function resetCatalog() {
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "category;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "category_description;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "category_path;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "category_to_store;");
+
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "manufacturer;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "manufacturer_to_store;");
+
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product_description;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product_discount;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product_special;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product_to_store;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product_to_category;");
+		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "product_attribute;");
+	}
+
 	public function setCategory($data) {
 		$category_id = $data['id'];
 
@@ -145,18 +163,19 @@ class ModelApiCatalog extends Model {
 								  upc = '" . $this->db->escape($data['upc']) . "', 
 								  quantity = 100, 
 								  manufacturer_id = '" . (int)$data['brandId'] . "', 
-								  price = '" . (float)$data['price'] . "', 
+								  price = '" . (float)$data['msrp'] . "', 
 								  weight = '" . (float)$data['sizeArray']['weight'] . "', 
 								  length = '" . (float)$data['sizeArray']['length'] . "', 
 								  width = '" . (float)$data['sizeArray']['width'] . "', 
-								  height = '" . (float)$data['sizeArray']['high'] . "'
+								  height = '" . (float)$data['sizeArray']['high'] . ", 
+								  date_modified = NOW()'
 							  WHERE
 							  	  product_id = " . (int)$product_id);
 		}
 		else {
 			/*
 				Need to translate:
-					- stock_status_is
+					- stock_status_id
 					- status
 					- images
 
@@ -223,25 +242,42 @@ class ModelApiCatalog extends Model {
 							  	  name = '" . $this->db->escape($name['value']) . "', 
 							  	  description = '', 
 							  	  tag = '', 
-							  	  meta_title = '', 
+							  	  meta_title = '" . $this->db->escape($name['value']) . "',  
 							  	  meta_description = '', 
 							  	  meta_keyword = ''");
 		}
 
 		//Once the name is saved, then we'll know for sure that a record exists in the description. Now loop through the descriptions array and update those records
-		foreach ($data['namesArray'] as $name) {
-			if ($name['locale'] == $this->config->get('ls_lang_name_en'))
+		foreach ($data['descriptionsArray'] as $description) {
+			if ($description['locale'] == $this->config->get('ls_lang_name_en'))
 				$language_id = $this->config->get('ls_lang_code_en');
-			elseif ($name['locale'] == $this->config->get('ls_lang_name_fr'))
+			elseif ($description['locale'] == $this->config->get('ls_lang_name_fr'))
 				$language_id = $this->config->get('ls_lang_code_fr');
 
 			$this->db->query("UPDATE " . DB_PREFIX . "product_description 
 							  SET 
-							  	  description = '" . $this->db->escape($name['value']) . "'
+							  	  description = '" . $this->db->escape($description['value']) . "'
 							  WHERE
 							  	  product_id = " . (int)$product_id . " AND language_id = " . $language_id ."
 							  LIMIT 1");
 		}
+
+		//We'll need to append the "specifications" values to the description column since there's no specifications field.
+		foreach ($data['specificationsArray'] as $specification) {
+			if ($specification['locale'] == $this->config->get('ls_lang_name_en'))
+				$language_id = $this->config->get('ls_lang_code_en');
+			elseif ($specification['locale'] == $this->config->get('ls_lang_name_fr'))
+				$language_id = $this->config->get('ls_lang_code_fr');
+
+			$this->db->query("UPDATE " . DB_PREFIX . "product_description 
+							  SET 
+							  	  description = CONCAT(description, '" . $this->db->escape($specification['value']) . "')
+							  WHERE
+							  	  product_id = " . (int)$product_id . " AND language_id = " . $language_id ."
+							  LIMIT 1");
+		}
+
+		//Save this product to the proper store
 		if (isset($data['product_store'])) {
 			foreach ($data['product_store'] as $store_id) {
 				$this->db->query("REPLACE INTO " . DB_PREFIX . "product_to_store SET product_id = '" . (int)$product_id . "', store_id = '" . (int)$store_id . "'");
@@ -249,7 +285,24 @@ class ModelApiCatalog extends Model {
 		}
 
 
-		//FIXME save the rest of the info (like specs) in attributes
+		//Save customer's discounted price
+		$this->db->query("REPLACE INTO " . DB_PREFIX . "product_discount 
+						  SET product_id = '" . (int)$product_id . "', 
+						  	  customer_group_id = '" . (int)$this->config->get('ls_venngo_customer_group_id') . "', 
+						  	  quantity = '1', 
+						  	  priority = '1', 
+						  	  price = '" . (float)$data['price'] . "', 
+						  	  date_start = '" . $this->db->escape($data['lastDateModified']) . "', 
+						  	  date_end = ''");
+
+
+		//Misc inserts that might be needed later
+		if (isset($data['product_discount'])) {
+			foreach ($data['product_discount'] as $product_discount) {
+				$this->db->query("REPLACE INTO " . DB_PREFIX . "product_discount SET product_id = '" . (int)$product_id . "', customer_group_id = '" . (int)$product_discount['customer_group_id'] . "', quantity = '" . (int)$product_discount['quantity'] . "', priority = '" . (int)$product_discount['priority'] . "', price = '" . (float)$product_discount['price'] . "', date_start = '" . $this->db->escape($product_discount['date_start']) . "', date_end = '" . $this->db->escape($product_discount['date_end']) . "'");
+			}
+		}
+
 		if (isset($data['product_attribute'])) {
 			foreach ($data['product_attribute'] as $product_attribute) {
 				if ($product_attribute['attribute_id']) {
@@ -280,12 +333,6 @@ class ModelApiCatalog extends Model {
 				} else {
 					$this->db->query("REPLACE INTO " . DB_PREFIX . "product_option SET product_id = '" . (int)$product_id . "', option_id = '" . (int)$product_option['option_id'] . "', value = '" . $this->db->escape($product_option['value']) . "', required = '" . (int)$product_option['required'] . "'");
 				}
-			}
-		}
-
-		if (isset($data['product_discount'])) {
-			foreach ($data['product_discount'] as $product_discount) {
-				$this->db->query("REPLACE INTO " . DB_PREFIX . "product_discount SET product_id = '" . (int)$product_id . "', customer_group_id = '" . (int)$product_discount['customer_group_id'] . "', quantity = '" . (int)$product_discount['quantity'] . "', priority = '" . (int)$product_discount['priority'] . "', price = '" . (float)$product_discount['price'] . "', date_start = '" . $this->db->escape($product_discount['date_start']) . "', date_end = '" . $this->db->escape($product_discount['date_end']) . "'");
 			}
 		}
 
