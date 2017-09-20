@@ -1,5 +1,6 @@
 <?php
 class ModelApiCatalog extends Model {
+
 	public function resetCatalog() {
 		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "category;");
 		$this->db->query("TRUNCATE TABLE " . DB_PREFIX . "category_description;");
@@ -37,11 +38,12 @@ class ModelApiCatalog extends Model {
 		}
 		//If not, REPLACE it.
 		else {
+			$topTmp = empty($data['parentId'])?1:0;
 			$this->db->query("REPLACE INTO " . DB_PREFIX . "category 
 							  SET 
 							  	category_id = '" . (int)$category_id . "', 
 							  	parent_id = '" . (int)$data['parentId'] . "', 
-							  	`top` = 0, 
+							  	`top` = ".$topTmp.", 
 							  	`column` = 0, 
 							  	status = 1, 
 							  	date_modified = NOW(), 
@@ -247,7 +249,7 @@ class ModelApiCatalog extends Model {
 		}
 
 		//Set the category. At the moment, products only have 1 category
-		$this->db->query("REPLACE INTO " . DB_PREFIX . "product_to_category SET product_id = '" . (int)$product_id . "', category_id = '" . (int)$data['categoryId'] . "'");
+		//$this->db->query("REPLACE INTO " . DB_PREFIX . "product_to_category SET product_id = '" . (int)$product_id . "', category_id = '" . (int)$data['categoryId'] . "'");
 
 		//Grab image and save it to OC directory
 		$image_url = "";

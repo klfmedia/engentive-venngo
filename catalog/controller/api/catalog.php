@@ -1,7 +1,9 @@
 <?php
 class ControllerApiCatalog extends Controller {
-	public function update() {
 
+	private $categoryArr = array();
+
+	public function update() {
 		//$this->load->language('api/coupon');
 
 		$json = array();
@@ -21,10 +23,16 @@ class ControllerApiCatalog extends Controller {
 			$this->resetCatalog();
 			$this->log->write("Reset completed");
 		}
-		
+
 		//For categories
 		$this->log->write("START Updating categories");
 		$categories = $this->getCategories();
+
+		// add category to an assc array
+		foreach ($categories as $cate) {
+			$this->categoryArr[$cate['id']] = $cate;
+		}
+
 		if (!$categories) {
 			$this->log->write("ERROR: Cannot fetch categories");
 			die();
@@ -82,7 +90,19 @@ class ControllerApiCatalog extends Controller {
 		else {
 			return $response;
 		}
-	}	
+	}
+
+	private function getCategoryParents($categoryId)
+	{
+		$pIds = array();
+		$tmpCateId = $categoryId;
+		while (intval($this->categoryArr[$tmpCateId]['parentId']) > 0) {
+			$pIds[] = $this->categoryArr[$tmpCateId]['parentId'];
+			$tmpCateId = $this->categoryArr[$tmpCateId]['parentId'];
+		}
+
+		return $pIds;
+	}
 
 	private function getBrands() {
 		$url = $this->config->get('ls_api_base_url') . $this->config->get('ls_api_get_brands');
@@ -143,6 +163,9 @@ class ControllerApiCatalog extends Controller {
 		foreach($products as $product) {
 			//Add in the store id for each product
 			$product['product_store'][] = $this->config->get('ls_venngo_store_id');
+			$cateIds = $this->getCategoryParents($product['categoryId']);
+			$cateIds[] = $product['categoryId'];
+			$product['product_category'] = $cateIds;
 			$this->model_api_catalog->setProduct($product);
 		}
 	}
