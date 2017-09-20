@@ -14,13 +14,14 @@ class ControllerExtensionPaymentLs extends Controller {
 		if ($this->session->data['payment_method']['code'] == 'ls') {
 			$this->load->model('checkout/order');
 			$this->load->model('account/order');
+			$this->load->model('catalog/product');
+			$this->load->library('curl');
 
 			//This marks the order as "paid"
 			$this->model_checkout_order->addOrderHistory($this->session->data['order_id'], $this->config->get('ls_order_status_id'));
 
 			//Getting the order details including payment and shipping addresses
 			$order_info = $this->model_account_order->getOrder($this->session->data['order_id']);
-
 			/*
 			Here is what the order_info array contains:
 
@@ -83,26 +84,57 @@ class ControllerExtensionPaymentLs extends Controller {
 			//Get order products
 			$order_products = $this->model_account_order->getOrderProducts($this->session->data['order_id']);
 
-			/*
-			Order products looks like this:
-				[0] => Array
-			        (
-			            [order_product_id] => 13
-			            [order_id] => 13
-			            [product_id] => 33
-			            [name] => Samsung SyncMaster 941BW
-			            [model] => Product 6
-			            [quantity] => 1
-			            [price] => 200.0000
-			            [total] => 200.0000
-			            [tax] => 0.0000
-			            [reward] => 0
-			        )
-			*/
+			$items = array();
+			foreach ($order_products as $op) {
+				$product_info = $this->model_catalog_product->getProduct($op['product_id']);
+				$items[] = array(
+							'careOf' => $order_info['firstname'],
+							'internalOrderLineNumber' => $op['order_product_id'],
+							'internalProductId' => $op['product_id'],
+							'lsProductId' => $product_info['sku'],
+							'quantity' => intval($op['quantity']));
+			}
+			
+			$reqest_body = array(
+				'customer' => array(
+					'companyName' => 'VannGo',
+					'deliveryAddress' => array(
+							'city' => $order_info['shipping_city'],
+							'complement' => '',
+							'country' => $order_info['shipping_country'],
+							'postalCode' => $order_info['shipping_postcode'],
+							'province' => $order_info['shipping_zone'],
+							'street' => $order_info['shipping_address_1']
+						 ),
+					'emailAddress' => $order_info['email'],
+					'firstname' => $order_info['firstname'],
+					'lastname' => $order_info['lastname'],
+					'phoneNumber' => $order_info['telephone'] 
+				),
+				'internalOrderId' => $order_info['order_id'],
+				'items' => $items
+			);
+			//use CURL class to init a curl object
+			$ls_curl = new Curl();
+			//set headers for request 
+			$ls_curl->setHeader('Authorization',$this->config->get('ls_api_auth_key'));
+			$ls_curl->setHeader('Content-Type','application/json');
+			// create new order
+			$ls_curl->post($this->config->get('ls_api_base_url').'orders',json_encode($reqest_body));
 
-			/*
-				Insert code for API here
-			*/
+			if($ls_curl->isSuccess())
+			{
+				$ls_curl->get($this->config->get('ls_api_base_url').$this->config->get('ls_api_get_order').$order_info['order_id']);
+				echo "<br/>";
+				echo $ls_curl->response;
+			}
+			else
+			{
+				echo $ls_curl->response;
+			}
+			//close connection
+			$ls_curl->close();
+			exit;
 		}
 
 		//function ends for now but should redirect to the "Success page"

@@ -79,19 +79,19 @@ $_['action_event'] = array(
 
 
 //CUSTOM - Loyalty Source API config settings
-$_['ls_api_base_url']       	  = "http://api-dev.loyaltysource.com:8080/";
-$_['ls_api_auth_key']       	  = "SVRDQU46SVRDMjkxNw==";
+$_['ls_api_base_url']       	  = "http://api-dev.loyaltysource.com:8080/api/";
+$_['ls_api_auth_key']       	  = "VmVubmdvOlZlbm4xMjM0NQ==";
 
-$_['ls_api_get_category']         = "api/categories/";
-$_['ls_api_get_categories']       = "api/categories";
-$_['ls_api_get_brand']         	  = "api/brands/";
-$_['ls_api_get_brands']       	  = "api/brands";
-$_['ls_api_get_products']         = "api/product/fullCatalog";
-$_['ls_api_get_product']          = "api/product/";
-$_['ls_api_get_order']            = "api/order";
-$_['ls_api_get_orders']           = "api/orders";
+$_['ls_api_get_category']         = "categories/";
+$_['ls_api_get_categories']       = "categories";
+$_['ls_api_get_brand']         	  = "brands/";
+$_['ls_api_get_brands']       	  = "brands";
+$_['ls_api_get_products']         = "product/fullCatalog";
+$_['ls_api_get_product']          = "product/";
+$_['ls_api_get_order']            = "orders/";
+$_['ls_api_get_orders']           = "orders";
 
-$_['ls_api_add_order']            = "api/orders";
+$_['ls_api_add_order']            = "orders";
 
 //OpenCart language codes
 $_['ls_lang_name_en']             = "en";
