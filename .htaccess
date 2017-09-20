@@ -56,3 +56,4 @@ Options -Indexes
 # php_admin_value open_basedir none
 
 php_value memory_limit 512M
+php_value max_execution_time 1200

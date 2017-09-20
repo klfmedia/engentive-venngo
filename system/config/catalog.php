@@ -93,6 +93,8 @@ $_['ls_api_get_orders']           = "orders";
 
 $_['ls_api_add_order']            = "orders";
 
+$_['ls_api_image_size'] 		  = "Large";
+
 //OpenCart language codes
 $_['ls_lang_name_en']             = "en";
 $_['ls_lang_code_en']             = 1;
@@ -102,3 +104,4 @@ $_['ls_lang_code_fr']             = 2;
 //Misc settings for Engentive
 $_['ls_venngo_store_id']          = 0;
 $_['ls_venngo_customer_group_id'] = 2;
+$_['ls_venngo_image_directory']   = "catalog/venngo/";

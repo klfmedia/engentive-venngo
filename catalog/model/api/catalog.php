@@ -130,9 +130,34 @@ class ModelApiCatalog extends Model {
 							  	name = '" . $this->db->escape($data['name']) . "'");
 		}
 
-		if (isset($data['imageUrl'])) {
-			$this->db->query("UPDATE " . DB_PREFIX . "manufacturer SET image = '" . $this->db->escape($data['imageUrl']) . "' WHERE manufacturer_id = '" . (int)$manufacturer_id . "'");
+		if (!empty($data['imageUrl'])) {
+			//Apprently the filename doesn't contain "http://" at the start...
+			$data['imageUrl'] = "http://" . $data['imageUrl'];
+
+			//Get the filename
+			$filename = substr($data['imageUrl'], strrpos($data['imageUrl'], '/') + 1);
+			$new_image_url = DIR_IMAGE . $this->config->get('ls_venngo_image_directory') . $filename;
+
+			//Make the directory exists
+			if (!file_exists(DIR_IMAGE . $this->config->get('ls_venngo_image_directory')))
+				mkdir(DIR_IMAGE . $this->config->get('ls_venngo_image_directory'));
+
+
+			//Save only if file already exists
+			if (!file_exists($new_image_url)){
+				//Save image from http to OC directory
+				file_put_contents($new_image_url, file_get_contents($data['imageUrl']));
+			}
+
+			if (file_exists($new_image_url)){
+				$this->db->query("UPDATE " . DB_PREFIX . "manufacturer SET image = '" . $this->config->get('ls_venngo_image_directory') . $filename . "' WHERE manufacturer_id = '" . (int)$manufacturer_id . "'");
+			}
+			else {
+				$this->log->write("ERROR: Image for brand " . $manufacturer_id . " was not saved");
+			}
+
 		}
+
 
 		if (isset($data['manufacturer_store'])) {
 			foreach ($data['manufacturer_store'] as $store_id) {
@@ -224,9 +249,36 @@ class ModelApiCatalog extends Model {
 		//Set the category. At the moment, products only have 1 category
 		$this->db->query("REPLACE INTO " . DB_PREFIX . "product_to_category SET product_id = '" . (int)$product_id . "', category_id = '" . (int)$data['categoryId'] . "'");
 
-		//Need to fetch the image somehow
-		if (isset($data['image'])) {
-			$this->db->query("UPDATE " . DB_PREFIX . "product SET image = '" . $this->db->escape($data['image']) . "' WHERE product_id = '" . (int)$product_id . "'");
+		//Grab image and save it to OC directory
+		$image_url = "";
+		foreach($data['imagesArray'] as $image) {
+			if ($image['type'] == $this->config->get('ls_api_image_size'))
+					$image_url = $image['url'];
+		}
+
+		if (!empty($image_url)) {
+			//Get the filename
+			$filename = substr($image_url, strrpos($image_url, '/') + 1);
+			$new_image_url = DIR_IMAGE . $this->config->get('ls_venngo_image_directory') . $filename;
+
+			//Make the directory exists
+			if (!file_exists(DIR_IMAGE . $this->config->get('ls_venngo_image_directory')))
+				mkdir(DIR_IMAGE . $this->config->get('ls_venngo_image_directory'));
+
+
+			//Save only if file already exists
+			if (!file_exists($new_image_url)){
+				//Save image from http to OC directory
+				file_put_contents($new_image_url, file_get_contents($image_url));
+			}
+
+			if (file_exists($new_image_url)){
+				$this->db->query("UPDATE " . DB_PREFIX . "product SET image = '" . $this->config->get('ls_venngo_image_directory') . $filename . "' WHERE product_id = '" . (int)$product_id . "'");
+			}
+			else {
+				$this->log->write("ERROR: Image for product " . $product_id . " was not saved");
+			}
+
 		}
 
 		//Save the name

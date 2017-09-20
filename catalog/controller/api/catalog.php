@@ -1,7 +1,7 @@
 <?php
 class ControllerApiCatalog extends Controller {
 	public function update() {
-		
+
 		//$this->load->language('api/coupon');
 
 		$json = array();
@@ -55,6 +55,8 @@ class ControllerApiCatalog extends Controller {
 		$this->log->write("Total of ".count($products)." rows fetched");
 		$this->updateProducts($products);
 		$this->log->write("END Updating products");
+
+		echo "Done!";
 
 		/*
 		if (isset($this->request->server['HTTP_ORIGIN'])) {
