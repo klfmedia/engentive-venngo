@@ -1,0 +1,3 @@
+#cartdiv {
+	float: right;
+}
