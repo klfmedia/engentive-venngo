@@ -97,7 +97,8 @@ $_['ls_api_add_order']            = "orders";
 $_['ls_lang_name_en']             = "en";
 $_['ls_lang_code_en']             = 1;
 $_['ls_lang_name_fr']             = "fr";
-$_['ls_lang_code_fr']             = 1;
+$_['ls_lang_code_fr']             = 2;
 
 //Misc settings for Engentive
 $_['ls_venngo_store_id']          = 0;
+$_['ls_venngo_customer_group_id'] = 2;
