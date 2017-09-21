@@ -215,4 +215,9 @@ class Curl {
     {
         return $this->http_status_code >= 500 && $this->http_status_code < 600;
     }
+
+    public function sayHi()
+    {
+        echo "Hi";
+    }
 }
